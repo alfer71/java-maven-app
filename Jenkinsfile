@@ -23,8 +23,8 @@ pipeline {
             steps {
                 script {
                     def dockerCmd = 'docker run -p 3080:3080 -d alfer/devops-project:jma-1.0'
-                    sshagent(['ec2-server-key']) {
-                       sh "ssh -o StrictHostKeyChecking=no ec2user@3.88.236.84 ${dockerCmd}"      
+                    sshagent(['aws-ec2-access']) {
+                       sh "ssh -o StrictHostKeyChecking=no ec2-user@3.88.236.84 ${dockerCmd}"      
                     }
                 }
             }
