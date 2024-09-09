@@ -1,33 +1,34 @@
-pipeline {
+#!/usr/bin.env groovy
 
+pipeline {   
     agent any
-
     stages {
-            stage("test") {
+        stage("test") {
             steps {
-                echo 'testing the application...'
-                echo "Executing pipeline for Branch $BRANCH_NAME"
+                script {
+                    echo "Testing the application..."
+
+                }
             }
-        } 
+        }
         stage("build") {
-            when {
-                expression {
-                    BRANCH_NAME == "main"
+            steps {
+                script {
+                    echo "Building the application..."
                 }
             }
-            steps {
-                echo 'building the application...'
-            }
         }
+
         stage("deploy") {
-            when {
-                expression {
-                    BRANCH_NAME == "main"
+            steps {
+                script {
+                    def dockerCmd = 'docker run -p 3080:3080 -d alfer/devops-project:jma-1.0'
+                    sshagent(['ec2-server-key']) {
+                       sh "ssh -o StrictHostKeyChecking=no ubuntu@34.229.7.22 ${dockerCmd}"      
+                    }
                 }
             }
-            steps {
-                echo 'deploying the application...'
-            }
-        }
-    }               
-}
+        }               
+    }
+} 
+
