@@ -42,9 +42,10 @@ pipeline {
                             sh """
                             ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 ${dockerCmd}
                             """
+                       }
                     }
                 }
-            }               
+            }
         }
     }
 }
