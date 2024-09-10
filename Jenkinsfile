@@ -1,33 +1,47 @@
+#!/usr/bin/env groovy
+
+library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
+    [$class: 'GitSCMSource',
+    remote: 'https://github.com/alfer71/java-maven-app.git',
+    credentialsID: 'gitlab-credentials'
+    ]
+)
+
 pipeline {
-
     agent any
-
+    tools {
+        maven 'Maven'
+    }
+    environment {
+        IMAGE_NAME = 'alfer/devops-project:java-maven-1.0'
+    }
     stages {
-            stage("test") {
+        stage('build app') {
             steps {
-                echo 'testing the application...'
-                echo "Executing pipeline for Branch $BRANCH_NAME"
+                echo 'building application jar...'
+                buildJar()
+            }
+        }
+        stage('build image') {
+            steps {
+                script {
+                    echo 'building the docker image...'
+                    buildImage(env.IMAGE_NAME)
+                    dockerLogin()
+                    dockerPush(env.IMAGE_NAME)
+                }
             }
         } 
-        stage("build") {
-            when {
-                expression {
-                    BRANCH_NAME == "main"
-                }
-            }
-            steps {
-                echo 'building the application...'
-            }
-        }
         stage("deploy") {
-            when {
-                expression {
-                    BRANCH_NAME == "main"
-                }
-            }
             steps {
-                echo 'deploying the application...'
-            }
+                script {
+                    echo 'deploying docker image to EC2...'
+                    def dockerCmd = "docker run -p 8080:8080 -d ${IMAGE_NAME}"
+                    sshagent(['aws-ec2-access']) {
+                       sh "ssh -o StrictHostKeyChecking=no ec2-user@3.89.247.112 ${dockerCmd}"
+                    }
+                }
+            }               
         }
-    }               
+    }
 }
