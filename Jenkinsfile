@@ -38,7 +38,9 @@ pipeline {
                     echo 'deploying docker image to EC2...'
                     def dockerCmd = "docker pull ${env.IMAGE_NAME} && docker run -p 8080:8080 -d ${env.IMAGE_NAME}"
                     sshagent(['aws-ec2-access']) {
-                       sh "ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 \"${dockerCmd}\""
+                       sh """
+                           ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 ${dockerCmd}
+                       """
                     }
                 }
             }               
