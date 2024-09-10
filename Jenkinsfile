@@ -27,25 +27,18 @@ pipeline {
                 script {
                     echo 'building the docker image...'
                     buildImage(env.IMAGE_NAME)
-                    // Use Jenkins credentials securely
-                    withCredentials([string(credentialsId: 'dockerhub-password', variable: 'PASS')]) {
-                        sh '''
-                            echo $PASS | docker login -u 'alfer' --password-stdin
-                        '''
-                    }
+                    dockerLogin()
                     dockerPush(env.IMAGE_NAME)
                 }
             }
         } 
-        stage('deploy') {
+        stage("deploy") {
             steps {
                 script {
                     echo 'deploying docker image to EC2...'
-                    def dockerCmd = "docker pull ${env.IMAGE_NAME} && docker run -p 8080:8080 -d ${env.IMAGE_NAME}"
+                    def dockerCmd = "docker run -p 8080:8080 -d ${IMAGE_NAME}"
                     sshagent(['aws-ec2-access']) {
-                       sh '''
-                           ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 '${dockerCmd}'
-                       '''
+                       sh "ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 ${dockerCmd}"
                     }
                 }
             }               
