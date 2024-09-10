@@ -28,7 +28,7 @@ pipeline {
                     echo 'building the docker image...'
                     buildImage(env.IMAGE_NAME)
                     // Use Jenkins credentials securely
-                    withCredentials([string(credentialsId: 'docker-password', variable: 'PASS')]) {
+                    withCredentials([string(credentialsId: 'dockerhub-password', variable: 'PASS')]) {
                         sh '''
                             echo $PASS | docker login -u 'alfer' --password-stdin
                         '''
