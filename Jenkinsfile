@@ -31,14 +31,20 @@ pipeline {
                     dockerPush(env.IMAGE_NAME)
                 }
             }
-        } 
+        }
         stage("deploy") {
             steps {
                 script {
                     echo 'deploying docker image to EC2...'
-                    def dockerCmd = "docker run -p 8080:8080 -d ${IMAGE_NAME}"
+                    def dockerCmd = "docker run -p 8080:8080 -d ${env.IMAGE_NAME}"
+                    
+                    // Secure the use of credentials in the ssh command
                     sshagent(['aws-ec2-access']) {
-                       sh "ssh -o StrictHostKeyChecking=no ec2-user@3.89.247.112 ${dockerCmd}"
+                       sh '''
+                       ssh -o StrictHostKeyChecking=no ec2-user@3.89.247.112 <<EOF
+                       ${dockerCmd}
+                       EOF
+                       '''
                     }
                 }
             }               
