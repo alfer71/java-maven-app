@@ -18,36 +18,38 @@ pipeline {
     stages {
         stage('build app') {
             steps {
-                echo 'building application jar...'
+                echo 'Building application JAR...'
                 buildJar()
             }
         }
         stage('build image') {
             steps {
                 script {
-                    echo 'building the docker image...'
+                    echo 'Building the Docker image...'
                     buildImage(env.IMAGE_NAME)
                     dockerLogin()
                     dockerPush(env.IMAGE_NAME)
                 }
             }
         }
-        stage("deploy") {
+        stage('deploy') {
             steps {
                 script {
-                    echo 'deploying docker image to EC2...'
+                    echo 'Deploying Docker image to EC2...'
+                    
+                    // Set the Docker run command
                     def dockerCmd = "docker run -p 8080:8080 -d ${env.IMAGE_NAME}"
                     
-                    // Secure the use of credentials in the ssh command
                     sshagent(['aws-ec2-access']) {
-                       sh '''
-                       ssh -o StrictHostKeyChecking=no ec2-user@3.89.247.112 <<EOF
-                       ${dockerCmd}
-                       EOF
-                       '''
+                        // Avoid interpolation issues by using a multiline script without interpolation
+                        sh '''
+                        ssh -o StrictHostKeyChecking=no ec2-user@3.89.247.112 <<EOF
+                        docker run -p 8080:8080 -d ''' + "${env.IMAGE_NAME}" + '''
+                        EOF
+                        '''
                     }
                 }
-            }               
+            }
         }
     }
 }
