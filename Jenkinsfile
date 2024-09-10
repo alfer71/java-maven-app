@@ -39,7 +39,7 @@ pipeline {
                     def dockerCmd = "docker run -p 8080:8080 -d ${IMAGE_NAME}"
                     sshagent(['aws-ec2-access']) {
                        sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@3.89.247.112 << EOF
+                    ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 << EOF
                     ${dockerCmd}
                     EOF
                     '''
