@@ -2,7 +2,7 @@
 
 library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
     [$class: 'GitSCMSource',
-    remote: 'https://gitlab.com/twn-devops-bootcamp/latest/09-aws/jenkins-shared-library.git',
+    remote: 'https://github.com/alfer71/java-maven-app.git',
     credentialsID: 'gitlab-credentials'
     ]
 )
@@ -36,9 +36,9 @@ pipeline {
             steps {
                 script {
                     echo 'deploying docker image to EC2...'
-                    def dockerCmd = "docker run -p 3080:3080 -d ${IMAGE_NAME}"
+                    def dockerCmd = "docker run -p 8080:8080 -d ${IMAGE_NAME}"
                     sshagent(['aws-ec2-access']) {
-                       sh "ssh -o StrictHostKeyChecking=no ec2-user@3.88.236.84 ${dockerCmd}"
+                       sh "ssh -o StrictHostKeyChecking=no ec2-user@3.89.247.112 ${dockerCmd}"
                     }
                 }
             }               
