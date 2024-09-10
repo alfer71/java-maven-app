@@ -3,7 +3,7 @@
 library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
     [$class: 'GitSCMSource',
     remote: 'https://github.com/alfer71/jenkins-shared-library.git',
-    credentialsId: 'gitlab-credentials'  // corrected from credentialsID
+    credentialsId: 'gitlab-credentials'
     ]
 )
 
@@ -27,7 +27,12 @@ pipeline {
                 script {
                     echo 'building the docker image...'
                     buildImage(env.IMAGE_NAME)
-                    dockerLogin()
+                    // Use Jenkins credentials securely
+                    withCredentials([string(credentialsId: 'docker-password', variable: 'PASS')]) {
+                        sh '''
+                            echo $PASS | docker login -u 'alfer' --password-stdin
+                        '''
+                    }
                     dockerPush(env.IMAGE_NAME)
                 }
             }
@@ -39,7 +44,7 @@ pipeline {
                     def dockerCmd = "docker pull ${env.IMAGE_NAME} && docker run -p 8080:8080 -d ${env.IMAGE_NAME}"
                     sshagent(['aws-ec2-access']) {
                        sh '''
-                           ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 ${dockerCmd}
+                           ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 '${dockerCmd}'
                        '''
                     }
                 }
