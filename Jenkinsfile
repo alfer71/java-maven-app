@@ -27,8 +27,9 @@ pipeline {
                 script {
                     echo "building the docker image..."
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        echo "Using Docker Hub Username: $USER"
                         sh 'docker build -t ${IMAGE_NAME} .'
-                        sh 'docker login -u $USER -p $PASS'
+                        sh 'echo $PASS | docker login --username $USER --password-stdin'
                         sh 'docker push ${IMAGE_NAME}'
                     }
                 }
