@@ -12,10 +12,20 @@ pipeline {
     tools {
         maven 'maven-3.9'
     }
-    environment {
-        IMAGE_NAME = 'alfer/devops-project:java-maven-1.3'
-    }
     stages {
+        stage('increment version') {
+            steps {
+                script {
+                    echo 'incrementing app version...'
+                    sh 'mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                        versions:commit'
+                    def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
+                    def version = matcher[0][1]
+                    env.IMAGE_NAME = "$version-$BUILD_NUMBER"
+                }
+            }
+        }
         stage('build app') {
             steps {
                 echo 'building application jar...'
@@ -42,14 +52,16 @@ pipeline {
                     echo 'deploying docker image to EC2...'
                     
                     def shellCmd = "bash ./server-cmds.sh ${IMAGE_NAME}"
+                    def ec2Instance = "ec2-user@4.160.194.129"
                     
                     sshagent(['aws-ec2-access']) {
-                       sh "scp  server-cmds.sh ec2-user@54.160.194.129:/home/ec2-user"
-                       sh "scp docker-compose.yaml ec2-user@54.160.194.129:/home/ec2-user"
-                       sh "ssh -o StrictHostKeyChecking=no ec2-user@54.160.194.129 ${shellCmd}"
+                       sh "scp  server-cmds.sh ${ec2Instance}:/home/ec2-user"
+                       sh "scp docker-compose.yaml ${ec2Instance}:/home/ec2-user"
+                       sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
                     }
                 }
             }               
         }
+        
     }
 }
