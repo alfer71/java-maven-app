@@ -22,16 +22,18 @@ pipeline {
                 buildJar()
             }
         }
-        stage('build image') {
+        stage("build image") {
             steps {
                 script {
-                    echo 'building the docker image...'
-                    buildImage(env.IMAGE_NAME)
-                    dockerLogin()
-                    dockerPush(env.IMAGE_NAME)
+                    echo "building the docker image..."
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh 'docker build -t alfer/devops-project:jma-3.0 .'
+                        sh 'docker login -u $USER -p $PASS'
+                        sh 'docker push alfer/devops-project:jma-3.0'
+                    }
                 }
             }
-        } 
+        }
         stage("deploy") {
             steps {
                 script {
