@@ -13,7 +13,7 @@ pipeline {
         maven 'maven-3.9'
     }
     environment {
-        IMAGE_NAME = 'alfer/devops-project:java-maven-1.1'
+        IMAGE_NAME = 'alfer/devops-project:java-maven-1.2'
     }
     stages {
         stage('build app') {
