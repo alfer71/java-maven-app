@@ -27,9 +27,9 @@ pipeline {
                 script {
                     echo "building the docker image..."
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                        sh 'docker build -t alfer/devops-project:jma-3.0 .'
+                        sh 'docker build -t ${IMAGE_NAME} .'
                         sh 'docker login -u $USER -p $PASS'
-                        sh 'docker push alfer/devops-project:jma-3.0'
+                        sh 'docker push ${IMAGE_NAME}'
                     }
                 }
             }
